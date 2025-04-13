@@ -1,12 +1,15 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using LogCollector.Models;
 using LogCollector.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 
 namespace DistributedLogger.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class LogController : ControllerBase
 {
     private readonly ILogCollectorService _logService;
@@ -23,15 +26,37 @@ public class LogController : ControllerBase
     {
         if (message == null || string.IsNullOrEmpty(message.Message))
             return BadRequest("Invalid log message.");
-
-        var response = await _logService.LogAsync(message);
-        return response;
+        var hostId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (hostId == null) return Unauthorized("User id not found.");
+        message.HostId = hostId;
+        message.UserId ??= hostId;
+        var savedMessage = await _logService.LogAsync([message]);
+        return new JsonResult(savedMessage);
+    }
+    
+    [HttpPost]
+    [Route("Batch")]
+    public async Task<IActionResult> PostLogBatch([FromBody] List<LogMessage> messages)
+    {
+        var hostId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (hostId == null) return Unauthorized("User id not found.");
+        foreach (var message in messages)
+        {
+            message.HostId = hostId;
+            message.UserId ??= hostId;
+        }
+        var savedMessage = await _logService.LogAsync(messages);
+        return new JsonResult(savedMessage);
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetLogs()
+    [HttpPost]
+    [Route("Search")]
+    public async Task<IActionResult> SearchLogs([FromBody]LogSearchFilter? filter)
     {
-        var logs = await _logService.GetLogs();
+        filter ??= new LogSearchFilter();
+        var hostId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        filter.HostId = hostId;
+        var logs = await _logService.GetLogs(filter);
         return logs is { Count: > 0 } ? new JsonResult(logs) : new JsonResult("No matching logs found");
     }
 }

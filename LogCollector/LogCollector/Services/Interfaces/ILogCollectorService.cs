@@ -5,6 +5,6 @@ namespace LogCollector.Services;
 
 public interface ILogCollectorService
 {
-    Task<JsonResult> LogAsync(LogMessage? message);
-    Task<List<LogMessage>> GetLogs();
+    Task<List<LogMessage>> LogAsync(List<LogMessage>? messages);
+    Task<List<LogMessage>> GetLogs(LogSearchFilter filter);
 }
