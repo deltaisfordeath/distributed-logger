@@ -1,5 +1,6 @@
 using System.Text;
 using LogCollector.Data;
+using LogCollector.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -10,12 +11,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddUserSecrets<Program>();
 
 var jwtSecret = builder.Configuration["JwtSecret"];
+if (jwtSecret == null) throw new Exception("Please provide a valid jwtSecret value in project secrets");
 var key = Encoding.UTF8.GetBytes(jwtSecret);
 
 // Add services to the container.
 
 builder.Services.AddDbContext<LoggerDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+
+builder.Services.AddScoped<ILogCollectorService, LogCollectorService>();
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<LoggerDbContext>()
