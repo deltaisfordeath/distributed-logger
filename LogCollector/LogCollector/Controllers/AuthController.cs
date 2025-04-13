@@ -19,8 +19,10 @@ public class AuthController(UserManager<IdentityUser> userManager, IConfiguratio
         var user = new IdentityUser { UserName = request.Username };
         var result = await userManager.CreateAsync(user, request.Password);
 
-        if (result.Succeeded) return Ok("User registered.");
-        return BadRequest(result.Errors);
+        if (!result.Succeeded)
+            return BadRequest(result.Errors);
+
+        return Ok("User registered.");
     }
 
     [HttpPost("login")]
@@ -29,18 +31,24 @@ public class AuthController(UserManager<IdentityUser> userManager, IConfiguratio
         var user = await userManager.FindByNameAsync(request.Username);
         if (user == null || !await userManager.CheckPasswordAsync(user, request.Password))
             return Unauthorized("Invalid credentials.");
+        var roles = await userManager.GetRolesAsync(user);
+        
+        await userManager.AddToRoleAsync(user, "User");
 
         var token = GenerateJwtToken(user);
         return Ok(new { token });
     }
 
-    private string GenerateJwtToken(IdentityUser user)
+    private async Task<string> GenerateJwtToken(IdentityUser user)
     {
-        var claims = new[]
+        var roles = await userManager.GetRolesAsync(user);
+        var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id),
-            new Claim(ClaimTypes.Name, user.UserName)
+            new Claim(ClaimTypes.Name, user.UserName),
         };
+
+        claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
         
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JwtSecret"]));
 

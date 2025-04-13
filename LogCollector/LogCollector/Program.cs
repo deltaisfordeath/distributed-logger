@@ -1,5 +1,6 @@
 using System.Text;
 using LogCollector.Data;
+using LogCollector.Helpers;
 using LogCollector.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -54,6 +55,13 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var config = services.GetRequiredService<IConfiguration>();
+    await IdentitySeeder.SeedRolesAsync(services, config);
 }
 
 app.UseHttpsRedirection();
