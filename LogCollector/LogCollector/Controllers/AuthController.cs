@@ -41,14 +41,13 @@ public class AuthController(UserManager<IdentityUser> userManager, IConfiguratio
             new Claim(ClaimTypes.NameIdentifier, user.Id),
             new Claim(ClaimTypes.Name, user.UserName)
         };
-
+        
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JwtSecret"]));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
             claims: claims,
             expires: DateTime.UtcNow.AddHours(2),
-            signingCredentials: creds);
+            signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
