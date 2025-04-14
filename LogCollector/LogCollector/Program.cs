@@ -2,6 +2,7 @@ using System.Text;
 using LogCollector.Data;
 using LogCollector.Helpers;
 using LogCollector.Services;
+using LogCollector.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

@@ -1,10 +1,10 @@
-using System.Diagnostics;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
-using LogCollector.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using LogCollector.Models;
 using Shared.Models;
+using LogCollector.Services.Interfaces;
 
 namespace LogCollector.Controllers;
 
@@ -23,7 +23,7 @@ public class LogController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> PostLog([FromBody] LogMessage? message)
+    public async Task<IActionResult> PostLog([FromBody] ServerLogMessage? message)
     {
         if (message == null || string.IsNullOrEmpty(message.Message))
             return BadRequest("Invalid log message.");
@@ -37,7 +37,7 @@ public class LogController : ControllerBase
     
     [HttpPost]
     [Route("Batch")]
-    public async Task<IActionResult> PostLogBatch([FromBody] List<LogMessage> messages)
+    public async Task<IActionResult> PostLogBatch([FromBody] List<ServerLogMessage> messages)
     {
         var hostId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (hostId == null) return Unauthorized("User id not found.");

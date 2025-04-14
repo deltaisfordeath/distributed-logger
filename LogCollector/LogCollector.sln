@@ -1,6 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35919.96 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogCollector", "LogCollector\LogCollector.csproj", "{5295DE9A-BFD3-4793-9DFC-10563460295B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared.Models", "..\Shared.Models\Shared.Models.csproj", "{AD6F86EF-29A7-6F00-71B4-4BB7181C23AE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -12,5 +17,12 @@ Global
 		{5295DE9A-BFD3-4793-9DFC-10563460295B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5295DE9A-BFD3-4793-9DFC-10563460295B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5295DE9A-BFD3-4793-9DFC-10563460295B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD6F86EF-29A7-6F00-71B4-4BB7181C23AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD6F86EF-29A7-6F00-71B4-4BB7181C23AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD6F86EF-29A7-6F00-71B4-4BB7181C23AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD6F86EF-29A7-6F00-71B4-4BB7181C23AE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal

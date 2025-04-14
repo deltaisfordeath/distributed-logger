@@ -1,5 +1,6 @@
 using LogCollector.Data;
-using Microsoft.AspNetCore.Mvc;
+using LogCollector.Models;
+using LogCollector.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Shared.Models;
 
@@ -14,7 +15,7 @@ public class LogCollectorService : ILogCollectorService
     {
         _context = context;
     }
-    public async Task<List<LogMessage>> LogAsync(List<LogMessage>? messages)
+    public async Task<List<ServerLogMessage>> LogAsync(List<ServerLogMessage>? messages)
     {
         if (messages == null) return [];
         await _context.LogMessages.AddRangeAsync(messages);
@@ -22,10 +23,10 @@ public class LogCollectorService : ILogCollectorService
         return messages;
     }
 
-    public async Task<List<LogMessage>> GetLogs(LogSearchFilter filter)
+    public async Task<List<ServerLogMessage>> GetLogs(LogSearchFilter filter)
     {
         {
-            IQueryable<LogMessage> query = _context.LogMessages;
+            IQueryable<ServerLogMessage> query = _context.LogMessages;
             
             if (!string.IsNullOrEmpty(filter.HostId))
             {
@@ -69,7 +70,7 @@ public class LogCollectorService : ILogCollectorService
     public async Task<int> DeleteLogs(LogSearchFilter filter)
     {
         {
-            IQueryable<LogMessage> query = _context.LogMessages;
+            IQueryable<ServerLogMessage> query = _context.LogMessages;
             
             if (!string.IsNullOrEmpty(filter.HostId))
             {
