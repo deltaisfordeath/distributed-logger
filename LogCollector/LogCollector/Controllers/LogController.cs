@@ -5,7 +5,7 @@ using LogCollector.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 
-namespace DistributedLogger.Controllers;
+namespace LogCollector.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -60,7 +60,7 @@ public class LogController : ControllerBase
             filter.HostId = hostId;
         }
         var logs = await _logService.GetLogs(filter);
-        return logs is { Count: > 0 } ? new JsonResult(logs) : new JsonResult("No matching logs found");
+        return logs is { Count: > 0 } ? new JsonResult(logs) : Ok("No matching logs found");
     }
     
     [HttpPost]
@@ -74,6 +74,6 @@ public class LogController : ControllerBase
             filter.HostId = hostId;
         }
         var deleted = await _logService.DeleteLogs(filter);
-        return Ok($"Successfully deleted {deleted} logs.");
+        return deleted > 0 ? Ok($"Successfully deleted {deleted} logs.") : Ok("No matching logs found");
     }
 }
