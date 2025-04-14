@@ -1,7 +1,7 @@
 using LogCollector.Data;
-using LogCollector.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Shared.Models;
 
 namespace LogCollector.Services;
 

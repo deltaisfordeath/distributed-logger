@@ -1,9 +1,10 @@
+using System.Diagnostics;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
-using LogCollector.Models;
 using LogCollector.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Shared.Models;
 
 namespace LogCollector.Controllers;
 

@@ -1,5 +1,5 @@
-using LogCollector.Models;
 using Microsoft.AspNetCore.Mvc;
+using Shared.Models;
 
 namespace LogCollector.Services;
 

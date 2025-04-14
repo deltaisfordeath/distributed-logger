@@ -1,4 +1,4 @@
-namespace LogCollector.Models;
+namespace Shared.Models;
 
 public class LogSearchFilter
 {

@@ -2,6 +2,7 @@ using LogCollector.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Shared.Models;
 
 namespace LogCollector.Data;
 

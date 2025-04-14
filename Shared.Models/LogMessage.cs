@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace LogCollector.Models;
+namespace Shared.Models;
 
 public class LogMessage
 {
