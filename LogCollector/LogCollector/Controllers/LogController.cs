@@ -54,9 +54,26 @@ public class LogController : ControllerBase
     public async Task<IActionResult> SearchLogs([FromBody]LogSearchFilter? filter)
     {
         filter ??= new LogSearchFilter();
-        var hostId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        filter.HostId = hostId;
+        if (!User.IsInRole("Admin"))
+        {
+            var hostId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            filter.HostId = hostId;
+        }
         var logs = await _logService.GetLogs(filter);
         return logs is { Count: > 0 } ? new JsonResult(logs) : new JsonResult("No matching logs found");
+    }
+    
+    [HttpPost]
+    [Route("Delete")]
+    public async Task<IActionResult> DeleteLogs([FromBody]LogSearchFilter? filter)
+    {
+        filter ??= new LogSearchFilter();
+        if (!User.IsInRole("Admin"))
+        {
+            var hostId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            filter.HostId = hostId;
+        }
+        var deleted = await _logService.DeleteLogs(filter);
+        return Ok($"Successfully deleted {deleted} logs.");
     }
 }
