@@ -1,7 +1,15 @@
+using LogProducer.Data;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration.AddUserSecrets<Program>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddDbContext<LogProducerDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
 var app = builder.Build();
 
