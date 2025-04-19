@@ -1,5 +1,7 @@
 using LogProducer.Data;
 using LogProducer.Helpers;
+using LogProducer.Services;
+using LogProducer.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 
@@ -13,9 +15,13 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<LogProducerDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<LogProducerDbContext>();
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<LogProducerDbContext>();
 
 builder.Services.AddRazorPages();
+
+builder.Services.AddHttpClient<DistributedLogService>();
+builder.Services.AddSingleton<IDistributedLogService, DistributedLogService>();
 
 var app = builder.Build();
 

@@ -2,6 +2,7 @@ namespace Shared.Models;
 
 public class LogSearchFilter
 {
+    public int? Id { get; set; }
     public string? HostId { get; set; }
     public string? UserId { get; set; }
     public DateTime? SearchStart { get; set; }

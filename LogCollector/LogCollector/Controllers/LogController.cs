@@ -23,15 +23,23 @@ public class LogController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> PostLog([FromBody] ServerLogMessage? message)
+    public async Task<IActionResult> PostLog([FromBody] LogMessage? message)
     {
         if (message == null || string.IsNullOrEmpty(message.Message))
             return BadRequest("Invalid log message.");
         var hostId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (hostId == null) return Unauthorized("User id not found.");
-        message.HostId = hostId;
+        var serverMessage = new ServerLogMessage
+        {
+            HostId = hostId,
+            Application = message.Application,
+            Level = message.Level,
+            Timestamp = message.Timestamp,
+            Message = message.Message,
+            UserId = message.UserId
+        };
         message.UserId ??= hostId;
-        var savedMessage = await _logService.LogAsync([message]);
+        var savedMessage = await _logService.LogAsync([serverMessage]);
         return new JsonResult(savedMessage);
     }
     

@@ -25,89 +25,60 @@ public class LogCollectorService : ILogCollectorService
 
     public async Task<List<ServerLogMessage>> GetLogs(LogSearchFilter filter)
     {
-        {
-            IQueryable<ServerLogMessage> query = _context.LogMessages;
-            
-            if (!string.IsNullOrEmpty(filter.HostId))
-            {
-                query = query.Where(log => log.HostId == filter.HostId);
-            }
-
-            if (!string.IsNullOrEmpty(filter.UserId))
-            {
-                query = query.Where(log => log.UserId == filter.UserId);
-            }
-
-            if (filter.SearchStart.HasValue)
-            {
-                query = query.Where(log => log.Timestamp >= filter.SearchStart.Value);
-            }
-
-            if (filter.SearchEnd.HasValue)
-            {
-                query = query.Where(log => log.Timestamp <= filter.SearchEnd.Value);
-            }
-
-            if (!string.IsNullOrEmpty(filter.LogLevel))
-            {
-                query = query.Where(log => log.Level == filter.LogLevel);
-            }
-
-            if (!string.IsNullOrEmpty(filter.Application))
-            {
-                query = query.Where(log => log.Application == filter.Application);
-            }
-
-            if (!string.IsNullOrEmpty(filter.SearchText))
-            {
-                query = query.Where(log => log.Message.Contains(filter.SearchText));
-            }
-
-            return await query.ToListAsync();
-        }
+        IQueryable<ServerLogMessage> query = BuildQuery(filter);
+        return await query.ToListAsync();
     }
     
     public async Task<int> DeleteLogs(LogSearchFilter filter)
     {
+        IQueryable<ServerLogMessage> query = BuildQuery(filter);
+        return await query.ExecuteDeleteAsync();
+    }
+
+    private IQueryable<ServerLogMessage> BuildQuery(LogSearchFilter filter)
+    {
+        IQueryable<ServerLogMessage> query =_context.LogMessages;
+
+        if (filter.Id != null)
         {
-            IQueryable<ServerLogMessage> query = _context.LogMessages;
-            
-            if (!string.IsNullOrEmpty(filter.HostId))
-            {
-                query = query.Where(log => log.HostId == filter.HostId);
-            }
-
-            if (!string.IsNullOrEmpty(filter.UserId))
-            {
-                query = query.Where(log => log.UserId == filter.UserId);
-            }
-
-            if (filter.SearchStart.HasValue)
-            {
-                query = query.Where(log => log.Timestamp >= filter.SearchStart.Value);
-            }
-
-            if (filter.SearchEnd.HasValue)
-            {
-                query = query.Where(log => log.Timestamp <= filter.SearchEnd.Value);
-            }
-
-            if (!string.IsNullOrEmpty(filter.LogLevel))
-            {
-                query = query.Where(log => log.Level == filter.LogLevel);
-            }
-
-            if (!string.IsNullOrEmpty(filter.Application))
-            {
-                query = query.Where(log => log.Application == filter.Application);
-            }
-
-            if (!string.IsNullOrEmpty(filter.SearchText))
-            {
-                query = query.Where(log => log.Message.Contains(filter.SearchText));
-            }
-
-            return await query.ExecuteDeleteAsync();
+            query = query.Where(log => log.Id == filter.Id);
         }
+        
+        if (!string.IsNullOrEmpty(filter.HostId))
+        {
+            query = query.Where(log => log.HostId == filter.HostId);
+        }
+
+        if (!string.IsNullOrEmpty(filter.UserId))
+        {
+            query = query.Where(log => log.UserId == filter.UserId);
+        }
+
+        if (filter.SearchStart.HasValue)
+        {
+            query = query.Where(log => log.Timestamp >= filter.SearchStart.Value);
+        }
+
+        if (filter.SearchEnd.HasValue)
+        {
+            query = query.Where(log => log.Timestamp <= filter.SearchEnd.Value);
+        }
+
+        if (!string.IsNullOrEmpty(filter.LogLevel))
+        {
+            query = query.Where(log => log.Level == filter.LogLevel);
+        }
+
+        if (!string.IsNullOrEmpty(filter.Application))
+        {
+            query = query.Where(log => log.Application == filter.Application);
+        }
+
+        if (!string.IsNullOrEmpty(filter.SearchText))
+        {
+            query = query.Where(log => log.Message.Contains(filter.SearchText));
+        }
+
+        return query;
     }
 }
