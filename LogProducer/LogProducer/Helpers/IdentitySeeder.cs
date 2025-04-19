@@ -1,7 +1,8 @@
 // Helpers/IdentitySeeder.cs
+
 using Microsoft.AspNetCore.Identity;
 
-namespace LogCollector.Helpers;
+namespace LogProducer.Helpers;
 
 public static class IdentitySeeder
 {

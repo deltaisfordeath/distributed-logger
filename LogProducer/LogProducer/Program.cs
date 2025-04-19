@@ -1,4 +1,5 @@
 using LogProducer.Data;
+using LogProducer.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 
@@ -39,5 +40,12 @@ app.MapRazorPages();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var config = services.GetRequiredService<IConfiguration>();
+    await IdentitySeeder.SeedRolesAsync(services, config);
+}
 
 app.Run();
