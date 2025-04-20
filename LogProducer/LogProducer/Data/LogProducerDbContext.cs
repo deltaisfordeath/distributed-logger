@@ -7,5 +7,11 @@ namespace LogProducer.Data;
 
 public class LogProducerDbContext(DbContextOptions<LogProducerDbContext> options) : IdentityDbContext<IdentityUser>(options)
 {
-    public DbSet<LogMessage> LogMessages { get; set; }
+    public DbSet<LogMessage> TempLogMessages { get; set; }
+    
+    public int ClearTable<T>() where T : class
+    {
+        var tableName = Model.FindEntityType(typeof(T)).GetTableName();
+        return Database.ExecuteSqlRaw($"DELETE FROM \"{tableName}\"");
+    }
 }

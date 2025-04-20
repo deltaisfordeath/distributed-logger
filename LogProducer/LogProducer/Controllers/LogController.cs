@@ -1,12 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using LogProducer.Data;
 using LogProducer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Shared.Models;
@@ -31,7 +24,11 @@ namespace LogProducer.Controllers
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 filter.UserId = userId;
             }
-            return View(await _logService.GetLogsAsync(filter));
+
+            var logs = await _logService.SearchLogsAsync(filter);
+            logs ??= [];
+
+            return View(logs);
         }
 
         public IActionResult Create()
@@ -61,7 +58,8 @@ namespace LogProducer.Controllers
                 return NotFound();
             }
 
-            var logMessage = (await _logService.GetLogsAsync(new LogSearchFilter())).FirstOrDefault(m => m.Id == id);
+            var searchResult = await _logService.SearchLogsAsync(new LogSearchFilter { Id = id });
+            var logMessage = searchResult?[0];
             if (logMessage == null)
             {
                 return NotFound();

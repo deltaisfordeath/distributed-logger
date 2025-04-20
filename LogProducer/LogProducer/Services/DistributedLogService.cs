@@ -9,21 +9,22 @@ using Shared.Models;
 namespace LogProducer.Services;
 
 // TODO: implement remote posting and retrieval of logs
-// TODO: if posting log to remote fails, save log locally
-// TODO: add worker to periodically check if there are local logs saved and retry posting to remote
+// TODO: implement client log search
 public class DistributedLogService: IDistributedLogService
 {
     private string _authToken;
     private readonly string _username;
     private readonly string _password;
     private readonly HttpClient _httpClient;
+    private readonly LogProducerDbContext _context;
     private static string _authUrl = "http://localhost:5039/api/auth/login";
     private static string _logUrl = "http://localhost:5039/api/log";
 
-    public DistributedLogService(HttpClient httpClient, IConfiguration config)
+    public DistributedLogService(HttpClient httpClient, LogProducerDbContext context, IConfiguration config)
     {
 
         _httpClient = httpClient;
+        _context = context;
         _username = config["DistributedLogUser:UserName"];
         _password = config["DistributedLogUser:Password"];
 
@@ -50,7 +51,7 @@ public class DistributedLogService: IDistributedLogService
             {
                 if (tokenElement.TryGetProperty("result", out var resultProperty))
                 {
-                    _authToken = resultProperty.GetString();
+                    _authToken = resultProperty.GetString() ?? "";
                 }
             }
             else
@@ -63,55 +64,76 @@ public class DistributedLogService: IDistributedLogService
     private async Task<HttpResponseMessage> MakeRemoteLogRequest(string action, List<LogMessage>? messages, LogSearchFilter? filter, int retryCount = 0)
     {
         var url = _logUrl + (string.IsNullOrEmpty(action) ? "" : "/" + action);
-        try
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _authToken);
+        var response = await _httpClient
+            .PostAsJsonAsync(url, messages ?? (object)filter);
+        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized && retryCount < 1)
         {
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _authToken);
-            var response = await _httpClient
-                .PostAsJsonAsync(url, messages ?? (object)filter);
-            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized && retryCount < 1)
-            {
-                await Authenticate();
-                return await MakeRemoteLogRequest(action, messages, filter, retryCount + 1);
-            }
-
-            return response;
-        } catch (Exception e)
-        {
-            Console.WriteLine(e);
-            return new HttpResponseMessage();
+            await Authenticate();
+            return await MakeRemoteLogRequest(action, messages, filter, retryCount + 1);
         }
+
+        return response;
     }
     
-    public async Task<LogMessage> LogAsync(LogMessage message)
+    public async Task<LogMessage?> LogAsync(LogMessage message)
     {
-        var messages = new List<LogMessage>();
-        messages.Add(message);
-        
-        const string action = "Batch";
-        var response = await MakeRemoteLogRequest(action, messages, null, 0);
-        return message;
+        var messages = new List<LogMessage> { message };
+
+        var messagesResponse = await LogManyAsync(messages);
+        return messagesResponse?[0];
     }
 
-    public async Task<List<LogMessage>> LogManyAsync(List<LogMessage> messages)
+    public async Task<List<LogMessage>?> LogManyAsync(List<LogMessage> messages)
     {
-        // TODO: add error handling
         const string action = "Batch";
-        var response = await MakeRemoteLogRequest(action, messages, null, 0);
-        return messages;
-    }
-
-    public async Task<List<LogMessage>> GetLogsAsync(LogSearchFilter filter)
-    {
-        const string action = "Search";
-        var response = await MakeRemoteLogRequest(action, null, filter);
-        if (response.IsSuccessStatusCode)
+        try
         {
-            var jsonString = await response.Content.ReadAsStringAsync();
-            var logMessages = JsonSerializer.Deserialize<List<LogMessage>>(jsonString, new JsonSerializerOptions
+            var response = await MakeRemoteLogRequest(action, messages, null, 0);
+            if (response.IsSuccessStatusCode)
             {
-                PropertyNameCaseInsensitive = true // Optional: To handle different casing in JSON
-            });
-            return logMessages ?? [];
+                var jsonString = await response.Content.ReadAsStringAsync();
+                var logMessages = JsonSerializer.Deserialize<List<LogMessage>>(jsonString, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true // Optional: To handle different casing in JSON
+                });
+                return logMessages;
+            }
+        }
+        catch (HttpRequestException e)
+        {
+            Console.WriteLine("Error making HTTP request to remote server: {0}", e);
+            await _context.TempLogMessages.AddRangeAsync(messages);
+            await _context.SaveChangesAsync();
+        }
+        catch (JsonException e)
+        {
+            Console.WriteLine("Error deserializing json from response : {0}", e);
+        }
+        return null;
+    }
+
+    public async Task<List<LogMessage>?> SearchLogsAsync(LogSearchFilter filter)
+    {
+        // TODO: Search local temp logs and combine with remote logs
+        const string action = "Search";
+        try
+        {
+            var response = await MakeRemoteLogRequest(action, null, filter);
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonString = await response.Content.ReadAsStringAsync();
+                var logMessages = JsonSerializer.Deserialize<List<LogMessage>>(jsonString, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true // Optional: To handle different casing in JSON
+                });
+                return logMessages ?? [];
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return null;
         }
 
         return [];
@@ -119,6 +141,7 @@ public class DistributedLogService: IDistributedLogService
 
     public async Task DeleteLogsAsync(LogSearchFilter filter)
     {
+        // TODO: add delete log functionality
         throw new NotImplementedException();
     }
 

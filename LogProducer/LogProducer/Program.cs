@@ -19,6 +19,8 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<LogProducerDbContext>()
     .AddDefaultTokenProviders();
 
+builder.Services.AddHostedService<SyncService>();
+
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Identity/Account/Login"; // Set the correct login path
@@ -29,7 +31,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.AddRazorPages();
 
 builder.Services.AddHttpClient<DistributedLogService>();
-builder.Services.AddSingleton<IDistributedLogService, DistributedLogService>();
+builder.Services.AddScoped<IDistributedLogService, DistributedLogService>();
 
 var app = builder.Build();
 

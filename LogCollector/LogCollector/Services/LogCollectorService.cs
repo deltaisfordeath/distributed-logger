@@ -42,6 +42,7 @@ public class LogCollectorService : ILogCollectorService
         if (filter.Id != null)
         {
             query = query.Where(log => log.Id == filter.Id);
+            return query;
         }
         
         if (!string.IsNullOrEmpty(filter.HostId))
