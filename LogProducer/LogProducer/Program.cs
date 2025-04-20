@@ -16,7 +16,15 @@ builder.Services.AddDbContext<LogProducerDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
-    .AddEntityFrameworkStores<LogProducerDbContext>();
+    .AddEntityFrameworkStores<LogProducerDbContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Identity/Account/Login"; // Set the correct login path
+    options.AccessDeniedPath = "/Identity/Account/AccessDenied"; // Optional: Set access denied path
+    options.ReturnUrlParameter = "ReturnUrl"; // Ensure return URL is handled correctly
+});
 
 builder.Services.AddRazorPages();
 

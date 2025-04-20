@@ -60,18 +60,18 @@ public class DistributedLogService: IDistributedLogService
         }
     }
 
-    private async Task<HttpResponseMessage> MakeRemoteLogRequest(string action, LogMessage? message, LogSearchFilter? filter, int retryCount = 0)
+    private async Task<HttpResponseMessage> MakeRemoteLogRequest(string action, List<LogMessage>? messages, LogSearchFilter? filter, int retryCount = 0)
     {
         var url = _logUrl + (string.IsNullOrEmpty(action) ? "" : "/" + action);
         try
         {
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _authToken);
             var response = await _httpClient
-                .PostAsJsonAsync(url, message ?? (object)filter);
+                .PostAsJsonAsync(url, messages ?? (object)filter);
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized && retryCount < 1)
             {
                 await Authenticate();
-                return await MakeRemoteLogRequest(action, message, filter, retryCount + 1);
+                return await MakeRemoteLogRequest(action, messages, filter, retryCount + 1);
             }
 
             return response;
@@ -84,15 +84,19 @@ public class DistributedLogService: IDistributedLogService
     
     public async Task<LogMessage> LogAsync(LogMessage message)
     {
-        // TODO: implement posting remote logs
-        const string action = "";
-        var response = await MakeRemoteLogRequest(action, message, null, 0);
+        var messages = new List<LogMessage>();
+        messages.Add(message);
+        
+        const string action = "Batch";
+        var response = await MakeRemoteLogRequest(action, messages, null, 0);
         return message;
     }
 
     public async Task<List<LogMessage>> LogManyAsync(List<LogMessage> messages)
     {
-        // await _context.AddRangeAsync(messages);
+        // TODO: add error handling
+        const string action = "Batch";
+        var response = await MakeRemoteLogRequest(action, messages, null, 0);
         return messages;
     }
 

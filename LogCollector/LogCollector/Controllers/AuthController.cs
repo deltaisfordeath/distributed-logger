@@ -32,7 +32,7 @@ public class AuthController(UserManager<IdentityUser> userManager, IConfiguratio
         if (user == null || !await userManager.CheckPasswordAsync(user, request.Password))
             return Unauthorized("Invalid credentials.");
         var roles = await userManager.GetRolesAsync(user);
-        
+
         await userManager.AddToRoleAsync(user, "User");
 
         var token = GenerateJwtToken(user);
@@ -49,12 +49,12 @@ public class AuthController(UserManager<IdentityUser> userManager, IConfiguratio
         };
 
         claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
-        
+
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JwtSecret"]));
 
         var token = new JwtSecurityToken(
             claims: claims,
-            expires: DateTime.UtcNow.AddSeconds(5),
+            expires: DateTime.UtcNow.AddHours(2),
             signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
 
         return new JwtSecurityTokenHandler().WriteToken(token);

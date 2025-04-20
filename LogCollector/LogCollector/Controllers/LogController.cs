@@ -29,32 +29,21 @@ public class LogController : ControllerBase
             return BadRequest("Invalid log message.");
         var hostId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (hostId == null) return Unauthorized("User id not found.");
-        var serverMessage = new ServerLogMessage
-        {
-            HostId = hostId,
-            Application = message.Application,
-            Level = message.Level,
-            Timestamp = message.Timestamp,
-            Message = message.Message,
-            UserId = message.UserId
-        };
-        message.UserId ??= hostId;
+        var serverMessage = ServerLogMessage.ConvertFromLogMessage(message, hostId);
         var savedMessage = await _logService.LogAsync([serverMessage]);
         return new JsonResult(savedMessage);
     }
     
     [HttpPost]
     [Route("Batch")]
-    public async Task<IActionResult> PostLogBatch([FromBody] List<ServerLogMessage> messages)
+    public async Task<IActionResult> PostLogBatch([FromBody] List<LogMessage> messages)
     {
         var hostId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (hostId == null) return Unauthorized("User id not found.");
-        foreach (var message in messages)
-        {
-            message.HostId = hostId;
-            message.UserId ??= hostId;
-        }
-        var savedMessage = await _logService.LogAsync(messages);
+        var serverMessages = messages.
+            Select(message => ServerLogMessage.ConvertFromLogMessage(message, hostId))
+            .ToList();
+        var savedMessage = await _logService.LogAsync(serverMessages);
         return new JsonResult(savedMessage);
     }
 
@@ -69,7 +58,7 @@ public class LogController : ControllerBase
             filter.HostId = hostId;
         }
         var logs = await _logService.GetLogs(filter);
-        return logs is { Count: > 0 } ? new JsonResult(logs) : Ok("No matching logs found");
+        return logs is { Count: > 0 } ? new JsonResult(logs) : new JsonResult(new List<LogMessage>());
     }
     
     [HttpPost]

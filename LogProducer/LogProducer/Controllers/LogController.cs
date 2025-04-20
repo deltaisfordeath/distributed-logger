@@ -8,10 +8,12 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using LogProducer.Data;
 using LogProducer.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Shared.Models;
 
 namespace LogProducer.Controllers
 {
+    [Authorize]
     public class LogController : Controller
     {
         private readonly IDistributedLogService _logService;
@@ -21,26 +23,22 @@ namespace LogProducer.Controllers
             _logService = logService;
         }
 
-        // GET: Log
         public async Task<IActionResult> Index()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var filter = new LogSearchFilter
+            var filter = new LogSearchFilter();
+            if (!User.IsInRole("Admin"))
             {
-                UserId = userId
-            };
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                filter.UserId = userId;
+            }
             return View(await _logService.GetLogsAsync(filter));
         }
 
-        // GET: Log/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Log/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,UserId,Application,Level,Message,Timestamp")] LogMessage logMessage)
@@ -56,7 +54,6 @@ namespace LogProducer.Controllers
             return View(logMessage);
         }
 
-        // GET: Log/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -73,7 +70,6 @@ namespace LogProducer.Controllers
             return View(logMessage);
         }
 
-        // POST: Log/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -83,7 +79,7 @@ namespace LogProducer.Controllers
                 Id = id
             };
             await _logService.DeleteLogsAsync(filter);
-            
+
             return RedirectToAction(nameof(Index));
         }
     }
