@@ -14,4 +14,6 @@ public class LogProducerDbContext(DbContextOptions<LogProducerDbContext> options
         var tableName = Model.FindEntityType(typeof(T)).GetTableName();
         return Database.ExecuteSqlRaw($"DELETE FROM \"{tableName}\"");
     }
+
+public DbSet<Shared.Models.LogSearchFilter> LogSearchFilter { get; set; } = default!;
 }

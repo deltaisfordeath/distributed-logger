@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using LogProducer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Shared.Models;
+using LogProducer.Models;
 
 namespace LogProducer.Controllers
 {
@@ -27,6 +28,34 @@ namespace LogProducer.Controllers
 
             var logs = await _logService.SearchLogsAsync(filter);
             logs ??= [];
+
+            return View(logs);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Search()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Search(LogSearchFilter filter)
+        {
+            filter ??= new LogSearchFilter();
+            if (!User.IsInRole("Admin"))
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                filter.UserId = userId;
+            }
+
+            var logs = await _logService.SearchLogsAsync(filter);
+            logs ??= [];
+
+            var model = new LogSearchViewModel
+            {
+                Filter = filter,
+                Results = logs
+            };
 
             return View(logs);
         }
