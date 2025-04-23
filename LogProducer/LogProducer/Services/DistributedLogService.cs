@@ -111,19 +111,20 @@ public class DistributedLogService: IDistributedLogService
 
     public async Task<List<LogMessage>?> SearchLogsAsync(LogSearchFilter filter)
     {
-        // TODO: Search local temp logs and combine with remote logs
         const string action = "Search";
         try
         {
+            var localLogs = await _context.SearchLogsAsync(filter);
             var response = await MakeRemoteLogRequest(action, null, filter);
             if (response.IsSuccessStatusCode)
             {
                 var jsonString = await response.Content.ReadAsStringAsync();
                 var logMessages = JsonSerializer.Deserialize<List<LogMessage>>(jsonString, new JsonSerializerOptions
                 {
-                    PropertyNameCaseInsensitive = true // Optional: To handle different casing in JSON
+                    PropertyNameCaseInsensitive = true
                 });
-                return logMessages ?? [];
+                
+                return localLogs.Concat(logMessages ?? []).ToList();
             }
         }
         catch (Exception e)
