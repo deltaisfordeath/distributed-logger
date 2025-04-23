@@ -52,7 +52,7 @@ public class LogCollectorService : ILogCollectorService
 
         if (!string.IsNullOrEmpty(filter.UserId))
         {
-            query = query.Where(log => log.UserId == filter.UserId);
+            query = query.Where(log => log.UserId.ToLower() == filter.UserId.ToLower());
         }
 
         if (filter.SearchStart.HasValue)
@@ -67,17 +67,17 @@ public class LogCollectorService : ILogCollectorService
 
         if (!string.IsNullOrEmpty(filter.LogLevel))
         {
-            query = query.Where(log => log.Level == filter.LogLevel);
+            query = query.Where(log => log.Level.ToLower() == filter.LogLevel.ToLower());
         }
 
         if (!string.IsNullOrEmpty(filter.Application))
         {
-            query = query.Where(log => log.Application == filter.Application);
+            query = query.Where(log => log.Application.ToLower() == filter.Application);
         }
 
         if (!string.IsNullOrEmpty(filter.SearchText))
         {
-            query = query.Where(log => log.Message.Contains(filter.SearchText));
+            query = query.Where(log => log.Message.ToLower().Contains(filter.SearchText.ToLower()));
         }
 
         return query;

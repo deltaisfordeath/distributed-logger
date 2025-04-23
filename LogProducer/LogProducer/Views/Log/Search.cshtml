@@ -2,51 +2,64 @@
 
 <h4>LogSearchFilter</h4>
 <hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Search">
+
+<form class="p-0"asp-action="Search">
+    <div class="row">
+        <div class="col-md-6 d-flex flex-column gap-1">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="Filter.HostId" class="control-label"></label>
-                <input asp-for="Filter.HostId" class="form-control" />
+                <input asp-for="Filter.HostId" class="form-control"/>
                 <span asp-validation-for="Filter.HostId" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Filter.UserId" class="control-label"></label>
-                <input asp-for="Filter.UserId" class="form-control" />
-                <span asp-validation-for="Filter.UserId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Filter.SearchStart" class="control-label"></label>
-                <input asp-for="Filter.SearchStart" class="form-control" />
+                <label for="search-start" class="control-label">Search Start</label>
+                <input id="search-start" type="datetime-local" class="form-control"/>
                 <span asp-validation-for="Filter.SearchStart" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Filter.SearchEnd" class="control-label"></label>
-                <input asp-for="Filter.SearchEnd" class="form-control" />
+                <label asp-for="Filter.LogLevel" class="control-label"></label>
+                <input asp-for="Filter.LogLevel" class="form-control"/>
+                <span asp-validation-for="Filter.LogLevel" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="col-md-6 d-flex flex-column gap-1">
+            <div class="form-group">
+                <label asp-for="Filter.UserId" class="control-label"></label>
+                <input asp-for="Filter.UserId" class="form-control"/>
+                <span asp-validation-for="Filter.UserId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label for="search-end" class="control-label">Search End</label>
+                <input id="search-end" type="datetime-local" class="form-control"/>
                 <span asp-validation-for="Filter.SearchEnd" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Filter.LogLevel" class="control-label"></label>
-                <input asp-for="Filter.LogLevel" class="form-control" />
-                <span asp-validation-for="Filter.LogLevel" class="text-danger"></span>
-            </div>
-            <div class="form-group">
                 <label asp-for="Filter.Application" class="control-label"></label>
-                <input asp-for="Filter.Application" class="form-control" />
+                <input asp-for="Filter.Application" class="form-control"/>
                 <span asp-validation-for="Filter.Application" class="text-danger"></span>
             </div>
+        </div>
+        <div class="col-12 d-flex flex-column gap-1 pb-2">
             <div class="form-group">
                 <label asp-for="Filter.SearchText" class="control-label"></label>
-                <input asp-for="Filter.SearchText" class="form-control" />
+                <input asp-for="Filter.SearchText" class="form-control"/>
                 <span asp-validation-for="Filter.SearchText" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Search Logs" class="btn btn-primary" />
+            <div class="d-none">
+                <div class="form-group">
+                    <input type="hidden" name="Filter.SearchStart" id="Filter_SearchStart" class="form-control"/>
+                </div>
+                <div class="form-group">
+                    <input type="hidden" name="Filter.SearchEnd" id="Filter_SearchEnd" class="form-control"/>
+                </div>
             </div>
-        </form>
+            <div class="form-group">
+                <input type="submit" value="Search Logs" class="btn btn-primary float-end"/>
+            </div>
+        </div>
     </div>
-</div>
+</form>
 @if (Model.Results.Count > 0)
 {
     <table class="table">
@@ -103,5 +116,42 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script>
+        const $startEl = $('#search-start');
+        const $endEl = $('#search-end');
+
+        $startEl.on('change.datetimepicker', function (e) {
+        console.log(typeof e.target.value);
+            console.log(`Setting start date to ${new Date(e.target.value)?.toISOString() ?? ''}`);
+            $('#Filter_SearchStart').val(new Date(e.target.value)?.toISOString() ?? '')
+        });
+        $endEl.on('change.datetimepicker', function (e) {
+            console.log(`Setting end date to ${new Date(e.target.value)?.toISOString() ?? ''}`);
+            $('#Filter_SearchEnd').val(new Date(e.target.value)?.toISOString() ?? '')
+        });
+        
+        $(document).ready(function () {
+            const filter = @Html.Raw(Json.Serialize(Model.Filter))
+            if (filter.searchStart){
+                const startDate = formatDateTimeLocal(new Date(filter.searchStart));
+                $startEl.val(startDate);
+            }
+            if (filter.searchEnd) {
+                const endDate = formatDateTimeLocal(new Date(filter.searchEnd));
+                $endEl.val(endDate);
+            }
+        });
+
+        function formatDateTimeLocal(date) { 
+            if (!(date instanceof Date) || isNaN(date)) return ""; 
+            const year = date.getFullYear(); 
+            const month = (date.getMonth() + 1).toString().padStart(2, '0'); 
+            const day = date.getDate().toString().padStart(2, '0'); 
+            const hours = date.getHours().toString().padStart(2, '0'); 
+            const minutes = date.getMinutes().toString().padStart(2, '0'); 
+            const seconds = date.getSeconds().toString().padStart(2, '0'); 
+            return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`; 
+        }
+    </script>
 }

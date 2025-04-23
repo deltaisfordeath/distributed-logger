@@ -35,7 +35,12 @@ namespace LogProducer.Controllers
         [HttpGet]
         public async Task<IActionResult> Search()
         {
-            return View();
+            var model = new LogSearchViewModel
+            {
+                Filter = new LogSearchFilter(),
+                Results = []
+            };
+            return View(model);
         }
 
         [HttpPost]
@@ -57,7 +62,7 @@ namespace LogProducer.Controllers
                 Results = logs
             };
 
-            return View(logs);
+            return View(model);
         }
 
         public IActionResult Create()
