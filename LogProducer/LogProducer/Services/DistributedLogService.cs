@@ -2,14 +2,10 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using LogProducer.Data;
 using LogProducer.Services.Interfaces;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.EntityFrameworkCore;
 using Shared.Models;
 
 namespace LogProducer.Services;
 
-// TODO: implement remote posting and retrieval of logs
-// TODO: implement client log search
 public class DistributedLogService: IDistributedLogService
 {
     private string _authToken;
@@ -141,8 +137,16 @@ public class DistributedLogService: IDistributedLogService
 
     public async Task DeleteLogsAsync(LogSearchFilter filter)
     {
-        // TODO: add delete log functionality
-        throw new NotImplementedException();
+        const string action = "Delete";
+        
+        try
+        {
+            await MakeRemoteLogRequest(action, null, filter);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
     }
 
     public async Task<LogMessage> DebugAsync(LogMessage message)

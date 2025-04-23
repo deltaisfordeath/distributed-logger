@@ -46,7 +46,6 @@ namespace LogProducer.Controllers
         [HttpPost]
         public async Task<IActionResult> Search(LogSearchFilter filter)
         {
-            filter ??= new LogSearchFilter();
             if (!User.IsInRole("Admin"))
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -110,6 +109,19 @@ namespace LogProducer.Controllers
             {
                 Id = id
             };
+            await _logService.DeleteLogsAsync(filter);
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        public async Task<IActionResult> DeleteMany(LogSearchFilter filter)
+        {
+            if (!User.IsInRole("Admin"))
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                filter.UserId = userId;
+            }
+
             await _logService.DeleteLogsAsync(filter);
 
             return RedirectToAction(nameof(Index));
