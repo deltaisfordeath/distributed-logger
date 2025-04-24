@@ -112,28 +112,27 @@ public class DistributedLogService: IDistributedLogService
     public async Task<List<LogMessage>?> SearchLogsAsync(LogSearchFilter filter)
     {
         const string action = "Search";
+        List<LogMessage> logs = [];
         try
         {
-            var localLogs = await _context.SearchLogsAsync(filter);
+            logs = await _context.SearchLogsAsync(filter);
             var response = await MakeRemoteLogRequest(action, null, filter);
-            if (response.IsSuccessStatusCode)
+            
+            if (!response.IsSuccessStatusCode) return logs;
+            
+            var jsonString = await response.Content.ReadAsStringAsync();
+            var logMessages = JsonSerializer.Deserialize<List<LogMessage>>(jsonString, new JsonSerializerOptions
             {
-                var jsonString = await response.Content.ReadAsStringAsync();
-                var logMessages = JsonSerializer.Deserialize<List<LogMessage>>(jsonString, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+                PropertyNameCaseInsensitive = true
+            });
                 
-                return localLogs.Concat(logMessages ?? []).ToList();
-            }
+            return logs.Concat(logMessages ?? []).ToList();
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
-            return null;
+            return logs;
         }
-
-        return [];
     }
 
     public async Task DeleteLogsAsync(LogSearchFilter filter)
