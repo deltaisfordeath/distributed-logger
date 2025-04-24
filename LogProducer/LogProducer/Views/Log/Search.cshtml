@@ -3,7 +3,7 @@
 <h4>LogSearchFilter</h4>
 <hr />
 
-<form class="p-0"asp-action="Search">
+<form class="p-0" asp-action="">
     <div class="row">
         <div class="col-md-6 d-flex flex-column gap-1">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
@@ -54,8 +54,12 @@
                     <input type="hidden" name="Filter.SearchEnd" id="Filter_SearchEnd" class="form-control"/>
                 </div>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Search Logs" class="btn btn-primary float-end"/>
+            <div class="form-group d-flex justify-content-end gap-3">
+                @if (Model.Results.Count > 0)
+                {
+                    <input type="submit" value="Delete Logs" formaction="DeleteMany" class="btn btn-danger"/>
+                }
+                <input type="submit" value="Search Logs" formaction="Search" class="btn btn-primary"/>
             </div>
         </div>
     </div>
@@ -110,10 +114,6 @@
         </tbody>
     </table>
 }
-
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
 
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }

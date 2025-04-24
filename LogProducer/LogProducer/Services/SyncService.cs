@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 public class SyncService : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly TimeSpan _interval = TimeSpan.FromMinutes(3);
+    private readonly TimeSpan _interval = TimeSpan.FromMinutes(5);
 
     public SyncService(IServiceScopeFactory scopeFactory)
     {
