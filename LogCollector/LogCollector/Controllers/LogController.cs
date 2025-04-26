@@ -31,7 +31,7 @@ public class LogController : ControllerBase
         if (hostId == null) return Unauthorized("User id not found.");
         var serverMessage = ServerLogMessage.ConvertFromLogMessage(message, hostId);
         var savedMessage = await _logService.LogAsync([serverMessage]);
-        return new JsonResult(savedMessage);
+        return savedMessage != null ? new JsonResult(savedMessage) : StatusCode(500);
     }
     
     [HttpPost]
@@ -44,7 +44,7 @@ public class LogController : ControllerBase
             Select(message => ServerLogMessage.ConvertFromLogMessage(message, hostId))
             .ToList();
         var savedMessage = await _logService.LogAsync(serverMessages);
-        return new JsonResult(savedMessage);
+        return savedMessage != null ? new JsonResult(savedMessage) : StatusCode(500);
     }
 
     [HttpPost]
@@ -58,6 +58,7 @@ public class LogController : ControllerBase
             filter.HostId = hostId;
         }
         var logs = await _logService.GetLogs(filter);
+        if (logs == null) return StatusCode(500);
         return logs is { Count: > 0 } ? new JsonResult(logs) : new JsonResult(new List<LogMessage>());
     }
     
@@ -72,6 +73,7 @@ public class LogController : ControllerBase
             filter.HostId = hostId;
         }
         var deleted = await _logService.DeleteLogs(filter);
+        if (deleted == null) return StatusCode(500);
         return deleted > 0 ? Ok($"Successfully deleted {deleted} logs.") : Ok("No matching logs found");
     }
 }

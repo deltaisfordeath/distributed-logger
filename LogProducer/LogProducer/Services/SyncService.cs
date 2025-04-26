@@ -4,8 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 public class SyncService : BackgroundService
 {
+    private const int SyncInterval = 5;
+    
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly TimeSpan _interval = TimeSpan.FromMinutes(5);
+    private readonly TimeSpan _interval = TimeSpan.FromMinutes(SyncInterval);
 
     public SyncService(IServiceScopeFactory scopeFactory)
     {

@@ -15,24 +15,50 @@ public class LogCollectorService : ILogCollectorService
     {
         _context = context;
     }
-    public async Task<List<ServerLogMessage>> LogAsync(List<ServerLogMessage>? messages)
+    public async Task<List<ServerLogMessage>?> LogAsync(List<ServerLogMessage>? messages)
     {
         if (messages == null) return [];
-        await _context.LogMessages.AddRangeAsync(messages);
-        await _context.SaveChangesAsync();
-        return messages;
+        try
+        {
+            await _context.LogMessages.AddRangeAsync(messages);
+            await _context.SaveChangesAsync();
+            return messages;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return null;
+        }
     }
 
-    public async Task<List<ServerLogMessage>> GetLogs(LogSearchFilter filter)
+    public async Task<List<ServerLogMessage>?> GetLogs(LogSearchFilter filter)
     {
         IQueryable<ServerLogMessage> query = BuildQuery(filter);
-        return await query.ToListAsync();
+        try
+        {
+            var messages = await query.ToListAsync();
+            return messages;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return null;
+        }
     }
     
-    public async Task<int> DeleteLogs(LogSearchFilter filter)
+    public async Task<int?> DeleteLogs(LogSearchFilter filter)
     {
         IQueryable<ServerLogMessage> query = BuildQuery(filter);
-        return await query.ExecuteDeleteAsync();
+        try
+        {
+            var deleted = await query.ExecuteDeleteAsync();
+            return deleted;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return null;
+        }
     }
 
     private IQueryable<ServerLogMessage> BuildQuery(LogSearchFilter filter)

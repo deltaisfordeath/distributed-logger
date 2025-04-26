@@ -99,8 +99,15 @@ public class DistributedLogService: IDistributedLogService
         catch (HttpRequestException e)
         {
             Console.WriteLine("Error making HTTP request to remote server: {0}", e);
-            await _context.TempLogMessages.AddRangeAsync(messages);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.TempLogMessages.AddRangeAsync(messages);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine("Error writing logs to temp database: {0}", exc);
+            }
         }
         catch (JsonException e)
         {
@@ -109,10 +116,31 @@ public class DistributedLogService: IDistributedLogService
         return null;
     }
 
+    public async Task<LogMessage?> AddLogToQueue(LogMessage message)
+    {
+        var messages = await AddManyToQueue([message]);
+        return messages?[0];
+    }
+
+    public async Task<List<LogMessage>?> AddManyToQueue(List<LogMessage> messages)
+    {
+        try
+        {
+            await _context.TempLogMessages.AddRangeAsync(messages);
+            await _context.SaveChangesAsync();
+            return messages;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return null;
+        }
+    }
+    
     public async Task<List<LogMessage>?> SearchLogsAsync(LogSearchFilter filter)
     {
         const string action = "Search";
-        List<LogMessage> logs = [];
+        List<LogMessage>? logs = null;
         try
         {
             logs = await _context.SearchLogsAsync(filter);
@@ -149,31 +177,31 @@ public class DistributedLogService: IDistributedLogService
         }
     }
 
-    public async Task<LogMessage> DebugAsync(LogMessage message)
+    public async Task<LogMessage?> DebugAsync(LogMessage message)
     {
         message.Level = "DEBUG";
         return await LogAsync(message);
     }
 
-    public async Task<LogMessage> InfoAsync(LogMessage message)
+    public async Task<LogMessage?> InfoAsync(LogMessage message)
     {
         message.Level = "INFO";
         return await LogAsync(message);
     }
 
-    public async Task<LogMessage> WarnAsync(LogMessage message)
+    public async Task<LogMessage?> WarnAsync(LogMessage message)
     {
         message.Level = "WARNING";
         return await LogAsync(message);
     }
 
-    public async Task<LogMessage> ErrorAsync(LogMessage message)
+    public async Task<LogMessage?> ErrorAsync(LogMessage message)
     {
         message.Level = "ERROR";
         return await LogAsync(message);
     }
 
-    public async Task<LogMessage> FatalAsync(LogMessage message)
+    public async Task<LogMessage?> FatalAsync(LogMessage message)
     {
         message.Level = "FATAL";
         return await LogAsync(message);

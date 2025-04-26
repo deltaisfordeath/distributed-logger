@@ -33,14 +33,14 @@ namespace LogProducer.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Search()
+        public Task<IActionResult> Search()
         {
             var model = new LogSearchViewModel
             {
                 Filter = new LogSearchFilter(),
                 Results = []
             };
-            return View(model);
+            return Task.FromResult<IActionResult>(View(model));
         }
 
         [HttpPost]
@@ -53,7 +53,7 @@ namespace LogProducer.Controllers
             }
 
             var logs = await _logService.SearchLogsAsync(filter);
-            logs ??= [];
+            if (logs == null) return StatusCode(500);
 
             var model = new LogSearchViewModel
             {
